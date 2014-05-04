@@ -4,17 +4,17 @@
 <widget xmlns         = "http://www.w3.org/ns/widgets"
         xmlns:gap     = "http://phonegap.com/ns/1.0"
         xmlns:android = "http://schemas.android.com/apk/res/android"
-        id            = "com.phonegap.vcpa-safety-check"
+        id            = "com.phonegap.vcpa-code-tracker"
         version       = "1.2.0">
     
     <preference name="phonegap-version" value="3.3.0" />  <!-- all: current version of PhoneGap -->
     <gap:platform name="android" />
 <!-- Disable iOS platform for now: <gap:platform name="ios" /> -->
   
-    <name>Safety Check</name>
+    <name>Code tracker</name>
 
     <description>
-        Perform safety checks by scanning NFC tags at security checkpoints
+        Tracks GPS coordinates and agency codes collected in the field
     </description>
 
     <author href="http://venturaprobation.org" email="webmaster.vcpa@ventura.org">
@@ -28,9 +28,10 @@
   <gap:plugin name="org.apache.cordova.device" />
   <gap:plugin name="org.apache.cordova.dialogs" />
   <gap:plugin name="org.apache.cordova.vibration" />
+  <gap:plugin name="org.apache.cordova.geolocation" />
+  <gap:plugin name="org.apache.cordova.core.geolocation" />
   <!-- Other plugins -->
   <gap:plugin name="com.simplec.plugins.localnotification" />
-	<gap:plugin name="com.chariotsolutions.nfc.plugin" />
 
   <!-- platform config-file customizations -->
   <gap:config-file platform="android" parent="/manifest/application">
@@ -85,12 +86,13 @@
     <preference name="android-launchMode"         value="singleTask" />
   
     <!-- Define app icon for each platform. -->
+<!--
     <icon src="icon.png" />
     <icon src="resources/icon/icon-36.png"          gap:platform="android"    gap:density="ldpi" />
     <icon src="resources/icon/icon-48.png"          gap:platform="android"    gap:density="mdpi" />
     <icon src="resources/icon/icon-72.png"          gap:platform="android"    gap:density="hdpi" />
     <icon src="resources/icon/icon-96.png"          gap:platform="android"    gap:density="xhdpi" />
-<!--
+
     <icon src="res/icon/ios/icon-57.png"            gap:platform="ios"        width="57" height="57" />
     <icon src="res/icon/ios/icon-72.png"            gap:platform="ios"        width="72" height="72" />
     <icon src="res/icon/ios/icon-57-2x.png"         gap:platform="ios"        width="114" height="114" />
