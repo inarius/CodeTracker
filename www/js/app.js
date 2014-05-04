@@ -188,23 +188,9 @@ var app = {
         Handlebars.registerHelper('formatTime', function (date) {
             return new Date(date).toTimeString().substring(0,5);
         });
-        Handlebars.registerHelper('bytesToString', function(byteArray) {
-            return nfc.bytesToString(byteArray);
-        });
-        Handlebars.registerHelper('bytesToHexString', function(byteArray) {
-            return nfc.bytesToHexString(byteArray);
-        });
         // useful for boolean
         Handlebars.registerHelper('toString', function(value) {
             return String(value);
-        });
-        Handlebars.registerHelper('tnfToString', function(tnf) {
-            return tnfToString(tnf);
-        });
-        Handlebars.registerHelper('decodePayload', function(record) {
-            return decodePayload(record);
-			//alert(nfc.decodePayload);
-            // TODO: FIX THIS!!!!
         });
         Handlebars.registerHelper('exclamation', function(record) {
 			var exclamations = [
