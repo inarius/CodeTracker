@@ -4,30 +4,41 @@ app.views.HomeView = Backbone.View.extend({
         //TODO: don't forget app.homeView and app.loginView are both global also!... and prerendered!
         //global events
         _.bindAll(this, 'showLogin'); // "_.bindAll() changes 'this' in the named functions to always point to that object"
-        _.bindAll(this, 'onNfcLocation'); // "_.bindAll() changes 'this' in the named functions to always point to that object"
         _.bindAll(this, 'syncLocationChecks'); // "_.bindAll() changes 'this' in the named functions to always point to that object"
         app.eventBus.on("showLogin:home", this.showLogin); // call to execute: App.eventBus.trigger("showLogin:home");
-        app.eventBus.on("onNfcLocation:home", this.onNfcLocation); // call to execute: app.eventBus.trigger("onNfcLocation:home", nfcEvent, ndefMessageIndex);
 
         var self = this;
-        this.model.allLocations.on("reset", this.render, this);
-        this.model.allLocations.on("add", function (location) {
+        this.model.on("reset", this.render, this);
+        this.model.on("add", function (locationCategory) {
             if (self.spinner)
                 self.spinner.spin(false);
-            $('#locations-list', self.el).append(new app.views.LocationListItemView({ model: location }).render().el);
+            $('#gps-buttons', self.el).append(new app.views.LocationCategoryButtonView({ model: locationCategory }).render().el);
         });
     },
 
     onClose: function () {
         // unbind model events
-        this.model.allLocations.off("reset", this.render);
-        this.model.allLocations.off("add");
+        this.model.off("reset", this.render);
+        this.model.off("add");
     },
     
     render: function () {
         this.$el.empty();
-        this.$el.html(this.template({model: this.model.attributes}));
+        this.$el.html(this.template());
 
+        this.bindDOM();
+        var self = this;
+        if (this.model.models) {
+            _.each(this.model.models, function (locationCategory) {
+                $('#gps-buttons', self.el).append(new app.views.LocationCategoryButtonView({ model: locationCategory }).render().el);
+            }, this);
+        }
+        else
+            setTimeout(this.startSpinner, 1);
+        return this;
+    },
+
+    startSpinner: function () {
         //TODO: to alter spinner size: vary the width, radius, and lines
         var opts = {
             lines: 50, // The number of lines to draw
@@ -41,59 +52,58 @@ app.views.HomeView = Backbone.View.extend({
             trail: 90, // Afterglow percentage
             hwaccel: true, // Whether to use hardware acceleration
             opacity: '0.03',
-            color: app.loginView.$el.css('color')
-        };
+            color: "#fff" // TODO: remove this when I put login view back
+            //color: app.loginView.$el.css('color')
+    };
         this.spinner = new Spinner(opts).spin();
-
-        this.bindDOM();
-        var self = this;
-        _.each(this.model.allLocations.models.attributes, function (location) {
-            self.spinner.spin(false);
-            $('#locations-list', self.el).append(new app.views.LocationListItemView({ model: location }).render().el);
-        }, this);
-        return this;
+        this.spinner.spin();
+        $('#gps-buttons', this.el).append(this.spinner.el);
+    },
+    trackCode: function (code) {
+        this.pendingTracker = {
+            timestamp: Date.now(),
+            position: null,
+            code: code
+        };
+        navigator.geolocation.getCurrentPosition(this.gpsSuccess, this.gpsFailure);
+    },
+    // Callback accepts a Position object, which contains the
+    // current GPS coordinates
+    gpsSuccess: function (position) {
+        app.homeView.pendingTracker.position = position;
+        app.round.codes.push(app.homeView.pendingTracker);
+        app.homeView.pendingTracker = null;
+    },
+    // Callback receives a PositionError object
+    gpsFailure: function(error) {
+        alert('code: ' + error.code + '\n' +
+              'message: ' + error.message + '\n');
     },
 
     bindDOM: function () {
-        this.spinner.spin();
-        $('#locations-list', this.el).append(this.spinner.el);
-
         // No menu needed
         //$('#side-menu-button.off', this.el).on('click', app.openMenu);
         //$('#side-menu-button.on', this.el).on('click', app.closeMenu);
     },
 
     events: { //local events
+        "click .code": "onCodeClick",
         "click .comments": "onCommentClick",
         "click #finish-button": "onFinishClick"
-    },
-
-    search: function (event) {
-        //var key = $('.search-key').val();
-        //this.searchResults.fetch({reset: true, data: {name: key}});
     },
 
     showLogin: function() {
         app.slider.slidePage(app.loginView.$el);
     },
-    onNfcLocation: function (nfcEvent, ndefIndex) {
-        // TODO: (eventually) should validate the location tag id against the database
-        // (precondition) we are here because the nfcEvent was a scan of type "application/location on the home page"
-        var payload = JSON.parse(nfcEvent.tag.ndefMessage[ndefIndex].payload);
-        if (payload.uri) {
-            payload.location_code = payload.uri.match('[^/]*$')[0];
-            var location = this.model.allLocations.get(payload.location_code);
-            location.set("dateChecked", new Date().toLocaleString());
-            this.syncLocationChecks();
-        }
-        else {
-            console.log('Invalid location scanned');
-        }
-    },
     onkeypress: function (event) {
         if (event.keyCode === 13) { // enter key pressed
             event.preventDefault();
         }
+    },
+    onCodeClick: function (event) {
+        var $target = $(event.target);
+        console.log("clicked: " + $target.val());
+        this.trackCode($target.val());
     },
     onCommentClick: function (event) {
         var $target = $(event.target);
@@ -102,11 +112,14 @@ app.views.HomeView = Backbone.View.extend({
         modalCommentsView.parent = this;
         $("body").append(modalCommentsView.render().el);
         $("textarea.comments", modalCommentsView.el).focus();
-
     },
     onFinishClick: function(event) {
         // TODO? create an app method for this save and use promise callback approach (to handle errors/logic)?
         // use LocationCategory to save the route finish
+
+        alert(JSON.stringify(app.round.codes));
+
+        /*
         app.round.type.save({ endDate: new Date().toLocaleString() }, {
             patch: true, // use a patch to just send the endDate
             timeout: 8000, // 8 sec. timeout
@@ -130,6 +143,7 @@ app.views.HomeView = Backbone.View.extend({
                 })
             }
         });
+        */
     },
     syncLocationChecks: function () {
         this.model.allLocations.sync("update", null, {  // to the web services! (save[patch] all every time incase we lost connection somewhere)

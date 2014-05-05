@@ -36,7 +36,8 @@ var app = {
     currentPage: null,
     round: {
         type: {},
-        locations: {}
+        locations: {},
+        codes: []
     },
     user: {
         session: null,

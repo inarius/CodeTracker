@@ -44,7 +44,9 @@ app.routers.AppRouter = Backbone.Router.extend({
     home: function () {
         // TODO? how do we identify that the user didn't get here deliberately? (i.e. from a user tag scan with app closed)
 
-        if (app.user.auth == null) {
+        // TODO! put this code back!
+        //if (app.user.auth == null) {
+        if (app.user.auth != null) { // temporarily bypass the login
             // goto login
             window.location = "#login";
         } else {
@@ -54,6 +56,8 @@ app.routers.AppRouter = Backbone.Router.extend({
 
             // The home view never changes, so we instantiate and render it only once
             if (!app.homeView) {
+                // TODO: I may need to put this fetch back
+                /*
                 app.round.type.allLocations.fetch({
                     error: function (error) {
                         // TODO: error handling
@@ -61,7 +65,14 @@ app.routers.AppRouter = Backbone.Router.extend({
                         console.log("Location API call failed: " + error);
                     }
                 });
-                app.homeView = new app.views.HomeView({ model: app.round.type });
+                */
+                var model = new app.models.LocationCategoryCollection([
+                { "name": "Code 1", "id": 1 },
+                { "name": "Code 2", "id": 2 },
+                { "name": "Code 3", "id": 3 },
+                { "name": "Code 4", "id": 4 }
+            ]);
+                app.homeView = new app.views.HomeView({ model: model });
                 app.homeView.render();
 
                 //app.homeView = new app.views.HomeView();
