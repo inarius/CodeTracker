@@ -3,7 +3,7 @@ var debug = {
     enabled: true,
     weinre_enabled: true,
     weinre_server_id: "nfc",
-    weinre_server_url: "http://157.145.184.4:8080/",
+    weinre_server_url: "http://11.0.0.118:8080/",
     weinre_script_url: "/js/debug/weinre-target-script.js",
     jsconsole_enabled: false,
     jsconsole_id: "VCPA",
