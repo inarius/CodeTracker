@@ -232,6 +232,13 @@ div.record {
 
 /* Home page */
 
+.home-page #gps-buttons button {
+    font-size: 90%;
+    width: 48%;
+    float: left;
+    margin: 1% 1%;
+}
+
 .home-page ol {
     font-size: 110%;
     overflow-y: scroll;
